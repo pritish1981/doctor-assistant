@@ -1,0 +1,34 @@
+spring:
+  jpa:
+    show-sql: false
+
+  devtools:
+    restart:
+      enabled: false
+
+server:
+  error:
+    include-message: never
+    include-binding-errors: never
+    include-exception: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when_authorized
+
+springdoc:
+  api-docs:
+    enabled: ${SWAGGER_ENABLED:false}
+  swagger-ui:
+    enabled: ${SWAGGER_ENABLED:false}
+
+logging:
+  level:
+    root: WARN
+    com.superclinic.doctorassistant: INFO
+    org.springframework.ai: WARN

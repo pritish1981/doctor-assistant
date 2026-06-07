@@ -1,0 +1,59 @@
+spring:
+  datasource:
+    url: jdbc:tc:postgresql:16:///doctor_assistant_test
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+
+  autoconfigure:
+    exclude:
+      - org.springframework.ai.vectorstore.pgvector.autoconfigure.PgVectorStoreAutoConfiguration
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
+  flyway:
+    enabled: true
+
+  ai:
+    openai:
+      api-key: test-api-key
+      chat:
+        options:
+          model: gpt-4.1-mini
+      embedding:
+        options:
+          model: text-embedding-3-small
+          dimensions: 1536
+    mcp:
+      server:
+        enabled: false
+      client:
+        enabled: false
+        toolcallback:
+          enabled: false
+    vectorstore:
+      pgvector:
+        table-name: vector_store
+        initialize-schema: true
+        dimensions: 1536
+        schema-validation: false
+    chat:
+      memory:
+        repository:
+          jdbc:
+            initialize-schema: always
+
+doctor-assistant:
+  mcp:
+    enabled: false
+  rag:
+    similarity-threshold: 0.0
+    top-k: 5
+    classpath-docs:
+      enabled: false
+      auto-ingest-on-startup: false
+
+logging:
+  level:
+    root: WARN
+    com.superclinic.doctorassistant: INFO
