@@ -69,37 +69,119 @@ The system is designed for:
 
 ```mermaid
 flowchart TB
-    subgraph Client
-        UI[React Chat UI<br/>localhost:5173]
-    end
 
-    subgraph Backend["Spring Boot API<br/>localhost:8081"]
-        API[REST Controllers]
-        Agent[Doctor Assistant Agent]
-        RAG[RAG Service]
-        Tools[AI Tools<br/>Search · Availability · Booking]
-        MCP[MCP Server / Client<br/>optional]
-    end
+    %% =====================
+    %% Presentation Layer
+    %% =====================
 
-    subgraph External
-        OpenAI[OpenAI API<br/>Chat + Embeddings]
-    end
+    User([Patient / User])
 
-    subgraph Data
-        PG[(PostgreSQL + pgvector)]
-        PDFs[Classpath PDFs<br/>src/main/resources/docs]
-    end
+    React["React Frontend
+    Chat UI
+    Session Management
+    Conversation History"]
 
-    UI -->|REST / SSE| API
-    API --> Agent
-    Agent --> Tools
-    Agent --> RAG
-    Agent --> OpenAI
-    RAG --> OpenAI
-    RAG --> PG
-    Tools --> PG
-    PDFs -->|ingest on startup| RAG
-    MCP -.-> Tools
+    User --> React
+
+    %% =====================
+    %% Backend Layer
+    %% =====================
+
+    React --> Controller["Spring Boot REST API
+    ChatController"]
+
+    Controller --> Agent["Doctor Assistant Agent
+    Spring AI ChatClient
+    OpenAI Responses API"]
+
+    %% =====================
+    %% Memory
+    %% =====================
+
+    Agent <--> Memory["Conversation Memory
+    Chat History
+    Context Management"]
+
+    %% =====================
+    %% Tool Calling
+    %% =====================
+
+    Agent --> DoctorTool["Doctor Search Tool"]
+    Agent --> AvailabilityTool["Availability Tool"]
+    Agent --> BookingTool["Appointment Booking Tool"]
+
+    %% =====================
+    %% Business Services
+    %% =====================
+
+    DoctorTool --> DoctorService["Doctor Service"]
+
+    AvailabilityTool --> AvailabilityService["Availability Service"]
+
+    BookingTool --> AppointmentService["Appointment Service"]
+
+    %% =====================
+    %% Database
+    %% =====================
+
+    DoctorService --> Postgres[(PostgreSQL)]
+
+    AvailabilityService --> Postgres
+
+    AppointmentService --> Postgres
+
+    Memory --> Postgres
+
+    %% =====================
+    %% Core Tables
+    %% =====================
+
+    Postgres --- Doctors["Doctors"]
+
+    Postgres --- Availability["Availability"]
+
+    Postgres --- Appointments["Appointments"]
+
+    Postgres --- Patients["Patients"]
+
+    Postgres --- Conversations["Conversation History"]
+
+    %% =====================
+    %% RAG
+    %% =====================
+
+    Agent --> Retriever["RAG Retriever"]
+
+    Retriever --> VectorStore["Vector Store
+    (pgvector / SimpleVectorStore)"]
+
+    VectorStore --> KnowledgeDocs["Knowledge Base
+
+    Doctor Profiles.pdf
+    Insurance Policies.pdf
+    Clinic FAQ.pdf
+    Appointment Policies.pdf"]
+
+    %% =====================
+    %% OpenAI
+    %% =====================
+
+    Agent --> OpenAI["OpenAI Responses API
+    GPT-4.1 / GPT-5"]
+
+    %% =====================
+    %% Future MCP
+    %% =====================
+
+    Agent -. Future .-> MCPClient["MCP Client"]
+
+    MCPClient -. Tool Discovery .-> MCPServer["MCP Server"]
+
+    MCPServer -. Exposes .-> DoctorTool
+
+    MCPServer -. Exposes .-> AvailabilityTool
+
+    MCPServer -. Exposes .-> BookingTool
 ```
 
 **Request flow (chat message):**
