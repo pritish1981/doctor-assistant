@@ -15,6 +15,7 @@ public final class DoctorAssistantAgentPrompt {
             ## Clinic date context (authoritative — always use for scheduling)
             - Today's date (UTC): %s
             - When checking availability, use yyyy-MM-dd dates on or after today. Never use past years or dates.
+            - For "this week" or "coming week" requests, pass today's date to availability tools — not tomorrow.
 
             ## Rules (strict)
             1. Never invent doctor information. Only present doctors, slots, and appointments \

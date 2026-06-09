@@ -41,7 +41,7 @@ export function SessionListItem({
         primary={session.title}
         secondary={formatSessionTime(session.lastActiveAt)}
         slotProps={{
-          primary: { noWrap: true, fontWeight: selected ? 600 : 500 },
+          primary: { noWrap: true, sx: { fontWeight: selected ? 600 : 500 } },
           secondary: { noWrap: true },
         }}
       />

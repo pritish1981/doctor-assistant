@@ -60,12 +60,14 @@ public class AvailabilityService {
             throw new BusinessValidationException("Max slots per day must be at least 1");
         }
 
-        log.debug("Suggesting alternative slots for doctorId={}, preferredDate={}, searchDays={}",
-                doctorId, preferredDate, searchDays);
+        LocalDate searchStart = resolveSearchStartDate(preferredDate);
+
+        log.debug("Suggesting alternative slots for doctorId={}, preferredDate={}, searchStart={}, searchDays={}",
+                doctorId, preferredDate, searchStart, searchDays);
 
         ArrayList<Availability> alternatives = new ArrayList<>();
         for (int dayOffset = 0; dayOffset < searchDays; dayOffset++) {
-            LocalDate searchDate = preferredDate.plusDays(dayOffset);
+            LocalDate searchDate = searchStart.plusDays(dayOffset);
             List<Availability> daySlots = findAvailableSlots(doctorId, searchDate);
             int limit = Math.min(daySlots.size(), maxSlotsPerDay);
             alternatives.addAll(daySlots.subList(0, limit));
@@ -87,11 +89,12 @@ public class AvailabilityService {
             throw new BusinessValidationException("Search days must be at least 1");
         }
 
-        Instant startInclusive = fromDate.atStartOfDay(CLINIC_ZONE).toInstant();
-        Instant endExclusive = fromDate.plusDays(searchDays).atStartOfDay(CLINIC_ZONE).toInstant();
+        LocalDate searchStart = resolveSearchStartDate(fromDate);
+        Instant startInclusive = searchStart.atStartOfDay(CLINIC_ZONE).toInstant();
+        Instant endExclusive = searchStart.plusDays(searchDays).atStartOfDay(CLINIC_ZONE).toInstant();
 
-        log.debug("Finding open slots for speciality={}, fromDate={}, searchDays={}",
-                speciality, fromDate, searchDays);
+        log.debug("Finding open slots for speciality={}, fromDate={}, searchStart={}, searchDays={}",
+                speciality, fromDate, searchStart, searchDays);
 
         List<Availability> slots = availabilityRepository.findOpenSlotsBySpeciality(
                 speciality.trim(),
@@ -100,8 +103,27 @@ public class AvailabilityService {
                 endExclusive);
 
         log.info("Found {} open slot(s) for speciality '{}' between {} and {}",
-                slots.size(), speciality, fromDate, fromDate.plusDays(searchDays - 1L));
+                slots.size(), speciality, searchStart, searchStart.plusDays(searchDays - 1L));
         return slots;
+    }
+
+    /**
+     * Multi-day availability searches always include today so slots on the current day
+     * are not skipped when the model passes tomorrow as the start date.
+     */
+    static LocalDate resolveSearchStartDate(LocalDate requestedDate) {
+        return resolveSearchStartDate(requestedDate, CLINIC_ZONE);
+    }
+
+    static LocalDate resolveSearchStartDate(LocalDate requestedDate, ZoneId zone) {
+        LocalDate today = LocalDate.now(zone);
+        if (requestedDate.isBefore(today)) {
+            return today;
+        }
+        if (requestedDate.isAfter(today)) {
+            return today;
+        }
+        return requestedDate;
     }
 
     @Transactional

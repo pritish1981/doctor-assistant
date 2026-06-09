@@ -21,7 +21,8 @@ Built as a production-oriented reference implementation using **Spring Boot 3**,
 - [Architecture](#architecture)
 - [Technology Stack](#technology-stack)
 - [Prerequisites](#prerequisites)
-- [Quick Start](#quick-start)
+- [Quick Start with Docker](#quick-start-with-docker)
+- [Quick Start (local development)](#quick-start-local-development)
 - [Configuration](#configuration)
 - [API Reference](#api-reference)
 - [AI Agent & Tools](#ai-agent--tools)
@@ -150,7 +151,53 @@ flowchart TB
 
 ---
 
-## Quick Start
+## Quick Start with Docker
+
+Run the full stack (PostgreSQL + pgvector, Spring Boot API, React UI) with Docker Compose.
+
+### 1. Configure environment
+
+```bash
+cp .env.example .env
+# Edit .env and set OPENAI_API_KEY
+```
+
+### 2. Build and start
+
+```bash
+docker compose up --build -d
+```
+
+### 3. Access the application
+
+| Service | URL |
+|---|---|
+| **Chat UI** | http://localhost:3000 |
+| **API** | http://localhost:8081 |
+| **Swagger UI** | http://localhost:8081/swagger-ui.html |
+| **Health** | http://localhost:8081/actuator/health |
+
+### 4. Useful commands
+
+```bash
+# View logs
+docker compose logs -f backend
+
+# Stop all services
+docker compose down
+
+# Stop and remove database volume (fresh DB)
+docker compose down -v
+
+# Re-import legacy doctor slots (optional, PowerShell)
+Get-Content src/main/resources/db/sample/import_legacy_local_doctors.sql -Raw | docker compose exec -T db psql -U postgres -d doctor_assistant
+```
+
+> **Note:** If you already have a standalone `doctor-assistant-db` container, stop it first (`docker stop doctor-assistant-db`) to avoid port/name conflicts.
+
+---
+
+## Quick Start (local development)
 
 ### 1. Start PostgreSQL with pgvector
 
@@ -172,7 +219,7 @@ Flyway migrations run automatically on backend startup and enable required exten
 
 ### 2. Configure environment variables
 
-Create a `.env` file in the project root (never commit secrets):
+Copy `.env.example` to `.env` in the project root (never commit secrets):
 
 ```bash
 SPRING_PROFILES_ACTIVE=dev
