@@ -157,6 +157,9 @@ doctor-assistant:
       doctor-profile-chunk-size: ${RAG_DOCTOR_PROFILE_CHUNK_SIZE:8000}
   appointment:
     slot-hold-minutes: ${APPOINTMENT_SLOT_HOLD_MINUTES:10}
+  availability:
+    reanchor-stale-slots-on-startup: ${AVAILABILITY_REANCHOR_STALE_SLOTS:true}
+    days-ahead: ${AVAILABILITY_DAYS_AHEAD:7}
   openai:
     connect-timeout: ${OPENAI_CONNECT_TIMEOUT:10s}
     read-timeout: ${OPENAI_READ_TIMEOUT:120s}
